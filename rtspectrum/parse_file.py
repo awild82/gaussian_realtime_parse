@@ -1,3 +1,8 @@
+from __future__ import division
+from builtins import next
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import re
 import numpy as np
 
@@ -63,7 +68,7 @@ def parse_file_gaussian(self):
         if 'External field Parameters' in line:
             self.envelope['Field']     = True
             for j in range(15):
-                line = fin.next()
+                line = next(fin)
                 if 'Envelope' in line.split()[0]:
                       self.envelope['Envelope']  = line.split()[2] # string
                 elif 'Gauge' in line.split()[0]:
@@ -177,7 +182,6 @@ def parse_file_gaussian(self):
         self.electricField.x  = np.asarray(eX)
         self.electricField.y  = np.asarray(eY)
         self.electricField.z  = np.asarray(eZ)
-        print(self.electricField.x)
     if(bX and bY and bZ):
         self.magneticField.x  = np.asarray(bX)
         self.magneticField.y  = np.asarray(bY)
@@ -307,9 +311,9 @@ def decode_iops(self):
                self.iops[iop].append('No external field')
             if (key % 1000 % 10) == 1:
                self.iops[iop].append('Electric Dipole')
-            if (key % 1000 % 100)/10 == 1:
+            if old_div((key % 1000 % 100),10) == 1:
                self.iops[iop].append('Electric Quadrupole')
-            if (key % 1000 % 1000)/100 == 1:
+            if old_div((key % 1000 % 1000),100) == 1:
                self.iops[iop].append('Magnetic Dipole')
             if (key // 1000) == 1:
                self.iops[iop].append('Velocity Gauge')
@@ -337,9 +341,9 @@ def decode_iops(self):
                self.iops[iop].append('Print orbital occu. num')
             elif (key % 10) == 2:
                self.iops[iop].append('Print orbital energy + orbital occu. num')
-            elif (key % 100)/10 == 1:
+            elif old_div((key % 100),10) == 1:
                self.iops[iop].append('Print electron density difference')
-            elif (key % 100)/100 == 1:
+            elif old_div((key % 100),100) == 1:
                self.iops[iop].append('Debug print')
         elif iop == '142':
             key = int(self.iops[iop][0])

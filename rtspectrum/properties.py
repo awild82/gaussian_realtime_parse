@@ -1,3 +1,5 @@
+from builtins import object
+
 class DipoleVector(object):
     """A DipoleVector object contains the x, y, and z dipole 
     components

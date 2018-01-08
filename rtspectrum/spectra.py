@@ -1,7 +1,12 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
+from builtins import object
 import sys
 import time
 import numpy as np
-from realtime import *
+from .realtime import *
 
 class Spectra(object):
     """Return a spectra object that can plot the total absorption spectrum or
@@ -58,7 +63,7 @@ class Spectra(object):
                 self.__dict__[q].pade_tx(q,self.spectra_type,self.damp_const,
                     self.num_pts)
                 t1 = time.time()
-                print "Pade done in: ", t1-t0
+                print("Pade done in: ", t1-t0)
             elif self.transformation == 'fourier':
                 self.__dict__[q].fourier_tx(q,self.spectra_type,\
                     self.damp_const,self.zero_pad,auto=auto)
@@ -100,7 +105,7 @@ class Spectra(object):
         try:
             import matplotlib.pyplot as plt
         except ImportError:
-            print "You need matplotlib to plot spectra"
+            print("You need matplotlib to plot spectra")
 
         ax = plt.subplot(111)
         ax.plot(self.frequency*toEV,self.spectra,label=legend,**kwargs)
@@ -108,7 +113,7 @@ class Spectra(object):
             if isinstance(legend,str):
                 plt.legend()
             else:
-                raise ValueError, "'legend' needs to be a string"
+                raise ValueError("'legend' needs to be a string")
 
         if xlabel:
             plt.xlabel(xlabel)
@@ -134,7 +139,7 @@ class Spectra(object):
                 plt.tight_layout()
                 plt.savefig(save)
             else:
-                raise ValueError, "'save' needs to be your filename!"
+                raise ValueError("'save' needs to be your filename!")
         if show:
             plt.show()
         plt.close()
@@ -171,10 +176,10 @@ class Spectra(object):
         kdx = idx[0][jdx[0]] # indices of peaks matching criteria
         if number > len(kdx):
             number = len(kdx)
-        print "First "+str(number)+" peaks (eV) found: "
-        for i in xrange(number): 
-            print "{0:.4f}".format(self.frequency[kdx][i]*27.2114),\
-                  "{0:.4f}".format(self.spectra[kdx][i])
+        print("First "+str(number)+" peaks (eV) found: ")
+        for i in range(number): 
+            print("{0:.4f}".format(self.frequency[kdx][i]*27.2114),\
+                  "{0:.4f}".format(self.spectra[kdx][i]))
         
             
 

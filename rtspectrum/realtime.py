@@ -1,10 +1,13 @@
 from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import object
 import numpy as np
 from scipy.linalg import solve
 import sys
 import time
-from properties import *
-from parse_file import *
+from .properties import *
+from .parse_file import *
 
 class RealTime(object):
     """A RealTime object contains important parsed data from a Gaussian RealTime
@@ -114,7 +117,7 @@ class RealTime(object):
                 dipole = self.electricDipole.z
                 kick_strength = self.electricField.z[0]
             else:
-                print "Not a valid direction for the dipole! Try: x,y,z "
+                print("Not a valid direction for the dipole! Try: x,y,z ")
         elif spectra.lower() == 'ecd':
             if dipole_direction.lower() == 'x':
                 dipole = self.magneticDipole.x
@@ -126,9 +129,9 @@ class RealTime(object):
                 dipole = self.magneticDipole.z
                 kick_strength = self.electricField.z[0]
             else:
-                print "Not a valid direction for the dipole! Try: x,y,z "
+                print("Not a valid direction for the dipole! Try: x,y,z ")
         else: 
-            print "Not a valid spectra choice"
+            print("Not a valid spectra choice")
 
         if np.isclose(kick_strength,0.0):
             if dipole_direction.lower() == 'x':
@@ -138,11 +141,11 @@ class RealTime(object):
             elif dipole_direction.lower() == 'z':
                 kick_strength = max(self.electricField.z)
             if np.isclose(kick_strength,0.0):
-                print "Kick strength = 0. Make sure you FFT'd the correct direction"
+                print("Kick strength = 0. Make sure you FFT'd the correct direction")
                 sys.exit(0)
-            print "It looks like you are not perturbing the field at time = 0"
-            print "so we are taking the maximum of the electric field instead"
-            print "This may not be the functionality you want."
+            print("It looks like you are not perturbing the field at time = 0")
+            print("so we are taking the maximum of the electric field instead")
+            print("This may not be the functionality you want.")
  
 
         # skip is integer to skip every n-th value
@@ -159,10 +162,10 @@ class RealTime(object):
         M = len(dipole)
         N = int(np.floor(M / 2))
 
-        print "N = ", N
+        print("N = ", N)
         if N > num_pts:
             N = num_pts
-        print "Trimmed points to: ", N
+        print("Trimmed points to: ", N)
 
         # G and d are (N-1) x (N-1)
         # d[k] = -dipole[N+k] for k in range(1,N)
@@ -180,7 +183,7 @@ class RealTime(object):
         try:
             from scipy.linalg import toeplitz, solve_toeplitz
         except ImportError:
-            print "You'll need SciPy version >= 0.17.0"
+            print("You'll need SciPy version >= 0.17.0")
             
         # Instead, form G = (c,r) as toeplitz
         #c = dipole[N:2*N-1]
@@ -206,7 +209,7 @@ class RealTime(object):
         fw_im = np.imag(p(W)/q(W))
 
         if np.any(np.isinf(self.frequency)) or np.any(np.isnan(self.frequency)):
-            print "Check your dT: frequency contains NaNs and/or Infs!"
+            print("Check your dT: frequency contains NaNs and/or Infs!")
             sys.exit(0)
 
         if spectra.lower() == 'abs':
@@ -238,7 +241,7 @@ class RealTime(object):
                 dipole = self.electricDipole.z
                 kick_strength = self.electricField.z[0]
             else:
-                print "Not a valid direction for the dipole! Try: x,y,z "
+                print("Not a valid direction for the dipole! Try: x,y,z ")
         elif spectra.lower() == 'ecd':
             if dipole_direction.lower() == 'x':
                 dipole = self.magneticDipole.x
@@ -250,9 +253,9 @@ class RealTime(object):
                 dipole = self.magneticDipole.z
                 kick_strength = self.electricField.z[0]
             else:
-                print "Not a valid direction for the dipole! Try: x,y,z "
+                print("Not a valid direction for the dipole! Try: x,y,z ")
         else: 
-            print "Not a valid spectra choice"
+            print("Not a valid spectra choice")
 
         if np.isclose(kick_strength,0.0):
             if dipole_direction.lower() == 'x':
@@ -262,10 +265,10 @@ class RealTime(object):
             elif dipole_direction.lower() == 'z':
                 kick_strength = max(self.electricField.z)
             if np.isclose(kick_strength,0.0):
-                print "Kick strength = 0. Make sure you FFT'd the correct direction"
+                print("Kick strength = 0. Make sure you FFT'd the correct direction")
                 sys.exit(0)
-            print "It looks like you are not perturbing the field at time = 0"
-            print "so we are taking the maximum of the electric field instead"
+            print("It looks like you are not perturbing the field at time = 0")
+            print("so we are taking the maximum of the electric field instead")
 
         if auto:
             dt = self.time[2] - self.time[1]
@@ -273,11 +276,11 @@ class RealTime(object):
             line_width = (2.0/damp_const)*27.2114
             #print "Damp const = ", damp_const
             if line_width > 2.0:
-                print "Large line width: ", "{0:.3f}".format(line_width)," eV"
-                print "Spectra not meaningful. Exiting..."
+                print("Large line width: ", "{0:.3f}".format(line_width)," eV")
+                print("Spectra not meaningful. Exiting...")
                 sys.exit(0)
             else:
-                print "Line width (eV) = ", "{0:.3f}".format(line_width)
+                print("Line width (eV) = ", "{0:.3f}".format(line_width))
              
             dipole = dipole - dipole[0]
             damp = np.exp(-(self.time-self.time[0])/float(damp_const))
@@ -288,7 +291,7 @@ class RealTime(object):
                 - len(self.time))
             if(zero_pad < 0.0):
                 zero_pad = 0.0
-            print "Number zeros = ", zero_pad
+            print("Number zeros = ", zero_pad)
 
             zero = np.linspace(0,0,zero_pad)
             dipole = np.hstack((dipole,zero))
@@ -311,7 +314,7 @@ class RealTime(object):
         timestep = self.time[2] - self.time[1]
         self.frequency = fftfreq(n,d=timestep)*2.0*np.pi
         if np.any(np.isinf(self.frequency)) or np.any(np.isnan(self.frequency)):
-            print "Check your dT: frequency contains NaNs and/or Infs!"
+            print("Check your dT: frequency contains NaNs and/or Infs!")
             sys.exit(0)
 
         if spectra.lower() == 'abs':
@@ -351,27 +354,27 @@ class RealTime(object):
         dE = abs(max(self.energy) - min(self.energy)) 
         t_maxE = self.time[np.argmax(self.energy)]
         t_minE = self.time[np.argmin(self.energy)]
-        print "Energy conserved to: ", "{0:.2e}".format(dE), " au"
-        print "Max energy at time:  ", t_maxE, " au"
-        print "Min energy at time:  ", t_minE, " au"
+        print("Energy conserved to: ", "{0:.2e}".format(dE), " au")
+        print("Max energy at time:  ", t_maxE, " au")
+        print("Min energy at time:  ", t_minE, " au")
 
     def check_field(self,tol=1e-6):
         if self.envelope['Field']:
-            print "External field:      ", self.envelope['Envelope']
-            print "Ex field matches:    ", np.allclose(self.electricField.x,
-                self.expected_field('Ex'),atol=tol)
-            print "Ey field matches:    ", np.allclose(self.electricField.y,
-                self.expected_field('Ey'),atol=tol)
-            print "Ez field matches:    ", np.allclose(self.electricField.z,
-                self.expected_field('Ez'),atol=tol)
-            print "Bx field matches:    ", np.allclose(self.magneticField.x,
-                self.expected_field('Bx'),atol=tol)
-            print "By field matches:    ", np.allclose(self.magneticField.y,
-                self.expected_field('By'),atol=tol)
-            print "Bz field matches:    ", np.allclose(self.magneticField.z,
-                self.expected_field('Bz'),atol=tol)
+            print("External field:      ", self.envelope['Envelope'])
+            print("Ex field matches:    ", np.allclose(self.electricField.x,
+                self.expected_field('Ex'),atol=tol))
+            print("Ey field matches:    ", np.allclose(self.electricField.y,
+                self.expected_field('Ey'),atol=tol))
+            print("Ez field matches:    ", np.allclose(self.electricField.z,
+                self.expected_field('Ez'),atol=tol))
+            print("Bx field matches:    ", np.allclose(self.magneticField.x,
+                self.expected_field('Bx'),atol=tol))
+            print("By field matches:    ", np.allclose(self.magneticField.y,
+                self.expected_field('By'),atol=tol))
+            print("Bz field matches:    ", np.allclose(self.magneticField.z,
+                self.expected_field('Bz'),atol=tol))
         else:
-            print "No external field applied"
+            print("No external field applied")
 
     def check_iops(self):
         """ Check internal consistency of some set iops and values printed out
@@ -381,47 +384,47 @@ class RealTime(object):
             if ((self.step_size == 0.05) \
                 and (int(self.iops['134'][0]) == 0)) or\
                (self.step_size == float(self.iops['134'][0])*0.00001):
-                print "Time step             [OK]: ", self.step_size, " au"
+                print("Time step             [OK]: ", self.step_size, " au")
         else:
-            print "Inconsistent time step: "
-            print "  IOps:                  ", self.iops['134'][1]
-            print "  logfile header showing ", self.step_size
-            print "  logfile showing        ", self.time[2] - self.time[1]
+            print("Inconsistent time step: ")
+            print("  IOps:                  ", self.iops['134'][1])
+            print("  logfile header showing ", self.step_size)
+            print("  logfile showing        ", self.time[2] - self.time[1])
         # Check the total propagation steps
         if ((self.total_steps == 50) \
            and (int(self.iops['177'][0]) == 0)) or\
             (self.total_steps == abs(int(self.iops['177'][0]))):
-                print "Number total steps    [OK]: ", self.total_steps, " steps"
+                print("Number total steps    [OK]: ", self.total_steps, " steps")
         else:
-            print "Inconsistent propagation time: "
-            print "  IOps:                  ", self.iops['132'][1]
-            print "  logfile header showing ", self.total_steps
+            print("Inconsistent propagation time: ")
+            print("  IOps:                  ", self.iops['132'][1])
+            print("  logfile header showing ", self.total_steps)
         # Check if external field is indeed On or OFF
         if ((self.envelope['Field'] == False) and\
            (int(self.iops['138'][0]) == 0)):
-            print "Field off:            [OK]"
+            print("Field off:            [OK]")
         elif (self.envelope and int(self.iops['138'][0]) != 0):
-            print "Field on:             [OK]"
+            print("Field on:             [OK]")
             self.check_field()
-            print "Field using: ", ' '.join(self.envelope['Terms'])
+            print("Field using: ", ' '.join(self.envelope['Terms']))
         else:
-            print "Inconsistency in field:"
-            print "IOps:                     ", self.iops['138'] 
+            print("Inconsistency in field:")
+            print("IOps:                     ", self.iops['138']) 
         
         # Check Orthonormalization
         if ((self.orthonorm == self.iops['136'][1])):
-            print "Orthonormality        [OK]:", self.orthonorm
+            print("Orthonormality        [OK]:", self.orthonorm)
         else:
-            print "Inconsistency in orthonormality"
-            print "IOps:                      ", self.iops['136'][1]
-            print "logfile showing:           ", self.orthonorm
+            print("Inconsistency in orthonormality")
+            print("IOps:                      ", self.iops['136'][1])
+            print("logfile showing:           ", self.orthonorm)
         # Check EM perturbation and Gauge
         if [self.envelope['Gauge'] in x for x in self.iops['138']]:
-            print "Gauge                 [OK]:", self.envelope['Gauge']
+            print("Gauge                 [OK]:", self.envelope['Gauge'])
         else:
-            print "Inconsistency in gauge"
-            print "IOps:                      ", self.iops['138']
-            print "logfile showing:           ", self.envelope['Gauge']
+            print("Inconsistency in gauge")
+            print("IOps:                      ", self.iops['138'])
+            print("logfile showing:           ", self.envelope['Gauge'])
        
 
     def expected_field(self,component):
@@ -467,7 +470,7 @@ class RealTime(object):
                          np.cos(OmegT[idx])*\
                          np.exp(-(Sigma*(Time[idx]-TCntr))**2)
         else:
-            print "Not a valid field!"
+            print("Not a valid field!")
             sys.exit(0) 
         return field
 
