@@ -138,6 +138,18 @@ def parse_file_gaussian(self):
         elif 'Energy =' in line:
             energy = line.split()
             en.append(float(energy[2]))
+        elif 'Current electric field (a.u.):' in line:
+            line = next(fin)
+            efield = line.split()
+            eX.append(float(efield[1])) 
+            eY.append(float(efield[3])) 
+            eZ.append(float(efield[5])) 
+        elif 'Current magnetic field (a.u.):' in line:
+            line = next(fin)
+            bfield = line.split()
+            bX.append(float(bfield[1])) 
+            bY.append(float(bfield[3])) 
+            bZ.append(float(bfield[5])) 
         elif 'Current electromagnetic field (a.u.):' in line:
             line = next(fin)
             efield = line.split()
@@ -165,6 +177,7 @@ def parse_file_gaussian(self):
         self.electricField.x  = np.asarray(eX)
         self.electricField.y  = np.asarray(eY)
         self.electricField.z  = np.asarray(eZ)
+        print(self.electricField.x)
     if(bX and bY and bZ):
         self.magneticField.x  = np.asarray(bX)
         self.magneticField.y  = np.asarray(bY)
