@@ -38,7 +38,7 @@ def parse_file_cq(self):
 def parse_file_gaussian(self):
     """Extract important attributes from the Gaussian realtime logfile."""
     filename = self.logfile
-    lines = [line.rstrip('\n') for line in open(filename)] 
+    fin = open(filename)
 
     muX = []
     muY = []
@@ -58,49 +58,47 @@ def parse_file_gaussian(self):
     HOMO= []
     LUMO= []
    
-    for idx, line in enumerate(lines):
+    for line in fin:
         r = re.findall(r'5/.*/12',line)
-        if line[1:26] == 'External field Parameters':
+        if 'External field Parameters' in line:
             self.envelope['Field']     = True
-            for jdx in range(1,16):
-                # control for newlines (length zero)
-                #print lines[idx+jdx].split()
-                if not len(lines[idx+jdx]):
-                    continue
-                elif 'Envelope' in lines[idx+jdx].split()[0]:
-                      self.envelope['Envelope']  = lines[idx+jdx].split()[2] # string
-                elif 'Gauge' in lines[idx+jdx].split()[0]:
-                      self.envelope['Gauge']     = lines[idx+jdx].split()[2] # string 
-                elif 'Ex' in lines[idx+jdx].split()[0]:
-                      self.envelope['Ex']  = float(lines[idx+jdx].split()[2]) # au
-                elif 'Ey' in lines[idx+jdx].split()[0]:
-                      self.envelope['Ey']  = float(lines[idx+jdx].split()[2]) # au
-                elif 'Ez' in lines[idx+jdx].split()[0]:
-                      self.envelope['Ez']  = float(lines[idx+jdx].split()[2]) # au
-                elif 'Bx' in lines[idx+jdx].split()[0]:
-                      self.envelope['Bx']  = float(lines[idx+jdx].split()[2]) # au
-                elif 'By' in lines[idx+jdx].split()[0]:
-                      self.envelope['By']  = float(lines[idx+jdx].split()[2]) # au
-                elif 'Bz' in lines[idx+jdx].split()[0]:
-                      self.envelope['Bz']  = float(lines[idx+jdx].split()[2]) # au
-                elif 'Range' in lines[idx+jdx].split()[0]:
-                      self.envelope['Sigma']  = float(lines[idx+jdx].split()[5]) # au
-                elif 'Frequency' in lines[idx+jdx].split()[0]:
-                      self.envelope['Frequency']  = float(lines[idx+jdx].split()[2]) # au
-                elif 'Phase' in lines[idx+jdx].split()[0]:
-                      self.envelope['Phase']  = float(lines[idx+jdx].split()[2]) # au
-                elif 't(on)' in lines[idx+jdx].split()[0]:
-                      self.envelope['TOn']  = float(lines[idx+jdx].split()[2]) # au
-                elif 't(off)' in lines[idx+jdx].split()[0]:
+            for j in range(15):
+                line = fin.next()
+                if 'Envelope' in line.split()[0]:
+                      self.envelope['Envelope']  = line.split()[2] # string
+                elif 'Gauge' in line.split()[0]:
+                      self.envelope['Gauge']     = line.split()[2] # string 
+                elif 'Ex' in line.split()[0]:
+                      self.envelope['Ex']  = float(line.split()[2]) # au
+                elif 'Ey' in line.split()[0]:
+                      self.envelope['Ey']  = float(line.split()[2]) # au
+                elif 'Ez' in line.split()[0]:
+                      self.envelope['Ez']  = float(line.split()[2]) # au
+                elif 'Bx' in line.split()[0]:
+                      self.envelope['Bx']  = float(line.split()[2]) # au
+                elif 'By' in line.split()[0]:
+                      self.envelope['By']  = float(line.split()[2]) # au
+                elif 'Bz' in line.split()[0]:
+                      self.envelope['Bz']  = float(line.split()[2]) # au
+                elif 'Range' in line.split()[0]:
+                      self.envelope['Sigma']  = float(line.split()[5]) # au
+                elif 'Frequency' in line.split()[0]:
+                      self.envelope['Frequency']  = float(line.split()[2]) # au
+                elif 'Phase' in line.split()[0]:
+                      self.envelope['Phase']  = float(line.split()[2]) # au
+                elif 't(on)' in line.split()[0]:
+                      self.envelope['TOn']  = float(line.split()[2]) # au
+                elif 't(off)' in line.split()[0]:
                 # Exception to fix user setting Toff to obscenely large values
                     try:
-                        self.envelope['TOff']  = float(lines[idx+jdx].split()[2]) # au
+                        self.envelope['TOff']  = float(line.split()[2]) # au
                     except ValueError:
                         self.envelope['TOff']      = 100000000.000 # au
-                elif 'Terms' in lines[idx+jdx].split()[0]:
-                      self.envelope['Terms']  = lines[idx+jdx].split()[3:] # multistring
+                elif 'Terms' in line.split()[0]:
+                      self.envelope['Terms']  = line.split()[3:] # multistring
                       #break
-        elif line[1:27] == 'No external field applied.':
+
+        elif 'No external field applied.' in line:
             self.envelope['Field']     = False
         elif r:
             iops = r[0].split('/')[1:-1][0].split(',')
@@ -108,45 +106,50 @@ def parse_file_gaussian(self):
                 key = iop.split('=')[0]
                 val = iop.split('=')[1]
                 self.iops[key] = [val]
-        elif line[1:33] == '               Number of steps =':
-            self.total_steps = int(lines[idx].split()[4])
-        elif line[1:33] == '                     Step size =':
-            self.step_size = float(lines[idx].split()[3])
-        elif line[1:33] == '     Orthonormalization method =':
-            self.orthonorm = lines[idx].split()[3]
-        elif line[1:34] == 'Alpha orbital occupation numbers:': 
+        elif 'Number of steps =' in line:
+            self.total_steps = int(line.split()[4])
+        elif 'Step size =' in line:
+            self.step_size = float(line.split()[3])
+        elif 'Orthonormalization method =' in line:
+            self.orthonorm = line.split()[3]
+        elif 'Alpha orbital occupation numbers:' in line: 
             #FIXME ONLY FOR H2+ RABI
-            HOMO.append(float(lines[idx+1].split()[0])) 
+            HOMO.append(float(line.split()[0])) 
             try:
-                LUMO.append(float(lines[idx+1].split()[1])) 
+                line = next(fin)
+                LUMO.append(float(line.split()[1])) 
             except IndexError:
                 LUMO.append(0.0) 
-        elif line[1:7] == 'Time =':
+        elif 'Time =' in line:
             time = line.split()
             t.append(float(time[2]))
-        elif line[1:22] == 'Dipole Moment (Debye)': 
-            dipole = lines[idx+1].split()
+        elif 'Dipole Moment (Debye)' in line: 
+            line = next(fin)
+            dipole = line.split()
             muX.append(float(dipole[1])*0.393456) 
             muY.append(float(dipole[3])*0.393456) 
             muZ.append(float(dipole[5])*0.393456) 
-        elif line[1:31] == 'Magnetic Dipole Moment (a.u.):': 
-            dipole = lines[idx+1].split()
+        elif 'Magnetic Dipole Moment (a.u.):' in line: 
+            line = next(fin)
+            dipole = line.split()
             mX.append(float(dipole[1])) 
             mY.append(float(dipole[3])) 
             mZ.append(float(dipole[5])) 
-        elif line[1:9] == 'Energy =':
+        elif 'Energy =' in line:
             energy = line.split()
             en.append(float(energy[2]))
-        elif line[1:38] == 'Current electromagnetic field (a.u.):':
-            efield = lines[idx+1].split()
-            bfield = lines[idx+2].split()
+        elif 'Current electromagnetic field (a.u.):' in line:
+            line = next(fin)
+            efield = line.split()
+            line = next(fin)
+            bfield = line.split()
             eX.append(float(efield[1])) 
             eY.append(float(efield[3])) 
             eZ.append(float(efield[5])) 
             bX.append(float(bfield[1])) 
             bY.append(float(bfield[3])) 
             bZ.append(float(bfield[5])) 
-        elif line[1:27] ==  '        Restart MMUT every':
+        elif 'Restart MMUT every' in line:
            self.mmut_restart = line.split()[3]
 
     # Save to object, if it exists
