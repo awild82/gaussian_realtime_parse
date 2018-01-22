@@ -39,6 +39,9 @@ def parse_file_cq(self):
   self.electricDipole.z = np.asarray(DipoleData[:,4])*0.393456
 
 
+def gau2float(gstr):
+    lsp = gstr.split('D')
+    return float(lsp[0])*10**(int(lsp[1]))
 
 def parse_file_gaussian(self):
     """Extract important attributes from the Gaussian realtime logfile."""
@@ -62,6 +65,14 @@ def parse_file_gaussian(self):
     #FIXME: FOR H2+ RABI ONLY
     HOMO= []
     LUMO= []
+    #FIXME: FOR MMPOL ONLY
+    NAtMM  = 0
+    NumPol = 0
+    NumChg = 0
+    MMDip  = []
+    MMChg  = []
+    MMCDip = []
+    MMCChg = []
    
     for line in fin:
         r = re.findall(r'5/.*/12',line)
@@ -119,9 +130,9 @@ def parse_file_gaussian(self):
             self.orthonorm = line.split()[3]
         elif 'Alpha orbital occupation numbers:' in line: 
             #FIXME ONLY FOR H2+ RABI
+            line = next(fin)
             HOMO.append(float(line.split()[0])) 
             try:
-                line = next(fin)
                 LUMO.append(float(line.split()[1])) 
             except IndexError:
                 LUMO.append(0.0) 
@@ -167,7 +178,31 @@ def parse_file_gaussian(self):
             bY.append(float(bfield[3])) 
             bZ.append(float(bfield[5])) 
         elif 'Restart MMUT every' in line:
-           self.mmut_restart = line.split()[3]
+            self.mmut_restart = line.split()[3]
+        elif 'QM/MM Polarizable Model (MMPol)' in line:
+            while '------------------------------' not in line:
+                line = next(fin)
+                if 'Total number of MM sites' in line:
+                    NAtMM = int(line.split()[-1])
+                    self.NAtMM = NAtMM
+                elif 'Number of charges' in line:
+                    NumChg = int(line.split()[-1])
+                    self.NumChg = NumChg
+                elif 'Number of induced dipoles' in line:
+                    NumPol = int(line.split()[-1])
+                    self.NumPol = NumPol
+        elif 'MMPol Dipoles:' in line or 'Dipoles:' in line:
+            NDipLn = int(np.ceil(float(NumPol)/5.0))
+            dips = np.zeros((NumPol,3))
+            for lidx in range(NDipLn):
+                line = next(fin)
+                didx = [int(idx)-1 for idx in line.split()]
+                for xyz in range(3):
+                    line = next(fin)
+                    dips[didx,xyz] = np.array([gau2float(num) for num in line.split()[1:]])
+            MMDip.append(dips)
+                
+                
 
     # Save to object, if it exists
     if(muX and muY and muZ):
@@ -186,6 +221,8 @@ def parse_file_gaussian(self):
         self.magneticField.x  = np.asarray(bX)
         self.magneticField.y  = np.asarray(bY)
         self.magneticField.z  = np.asarray(bZ)
+    if MMDip:
+        self.MMDip = np.array(MMDip)
     if(t):
         self.time             = np.asarray(t)
     if(en):
@@ -367,6 +404,7 @@ def decode_iops(self):
                self.iops[iop].append('Print all orbitals')
             else:
                self.iops[iop].append('Print HOMO-6*N to LUMO+6*N+4')
+
 
 
 
